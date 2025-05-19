@@ -1,0 +1,68 @@
+name: Verify ChM Mirror
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  verify-mirror:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout source repo (SIG)
+      uses: actions/checkout@v3
+      with:
+        repository: 4RK-OFF/SIG
+        path: source
+
+    - name: Checkout mirror repo (SIG3)
+      uses: actions/checkout@v3
+      with:
+        repository: 4RK-OFF/universe.dao-sig3
+        path: mirror
+
+    - name: Compare ChM files + generate report + SIG3
+      run: |
+        cd source
+        mkdir -p verify signers/SIG3
+        REPORT="verify/verify-report.txt"
+        echo "🔍 C-HASH-P Mirror Report" > $REPORT
+        echo "Generated: $(date -u)" >> $REPORT
+        echo "" >> $REPORT
+
+        for FILE in messages/ChM-*.txt; do
+          FILENAME=$(basename "$FILE")
+          MIRROR_FILE="../mirror/messages/$FILENAME"
+
+          echo "▶ Checking $FILENAME" | tee -a $REPORT
+
+          if [ ! -f "$MIRROR_FILE" ]; then
+            echo "❌ $FILENAME missing in mirror!" | tee -a $REPORT
+            echo "" >> $REPORT
+            continue
+          fi
+
+          if cmp -s "$FILE" "$MIRROR_FILE"; then
+            echo "✅ $FILENAME matches" | tee -a $REPORT
+            HASH=$(sha256sum "$FILE" | awk '{print $1}')
+            echo "ChM-HASH: $HASH" >> $REPORT
+            echo "$HASH" > "signers/SIG3/SIG3-$FILENAME.sig"
+          else
+            echo "❌ $FILENAME mismatch" | tee -a $REPORT
+          fi
+          echo "" >> $REPORT
+        done
+
+    - name: Commit and push report + SIG3
+      run: |
+        cd source
+        git config --global user.name "chm-bot"
+        git config --global user.email "chm@universe.dao"
+
+        [ -e verify/verify-report.txt ] && git add verify/verify-report.txt
+        ls signers/SIG3/*.sig 2>/dev/null && git add signers/SIG3/*.sig || echo "No SIG3 signatures to add."
+
+        git commit -m "Update verify-report and SIG3 auto-signatures [auto]" || echo "No changes to commit"
+        git push
