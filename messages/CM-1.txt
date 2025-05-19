@@ -6,4 +6,4 @@ All messages moving forward will link to a defined C-HASH and identity quorum.
 —
 
 SIG-UNIVERSE.DAO  
-ChM-0:v0:a7961feb832583791ad2c277785f04e39e7b5c30000e1dcf94a5ffda9590ac4b
+ChM-1:v0:a7961feb832583791ad2c277785f04e39e7b5c30000e1dcf94a5ffda9590ac4b
