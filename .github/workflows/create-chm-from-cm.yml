@@ -1,0 +1,85 @@
+name: PUSH new ChM
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  generate-canonical-message:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Install jq (for JSON formatting)
+      run: sudo apt-get install -y jq
+
+    - name: Generate ChM-*.txt with header + V-CHECK
+      run: |
+        for CM_FILE in messages/CM-*.txt; do
+          if [ ! -f "$CM_FILE" ]; then
+            echo "❌ No CM-*.txt files found."
+            exit 1
+          fi
+
+          echo "▶ Processing $CM_FILE"
+
+          # Extract footer like: ChM-42:v1:<C-HASH>
+          FOOTER_LINE=$(grep '^ChM-' "$CM_FILE")
+
+          if [[ -z "$FOOTER_LINE" ]]; then
+            echo "❌ Missing ChM footer line in $CM_FILE"
+            continue
+          fi
+
+          CHM_ID=$(echo "$FOOTER_LINE" | cut -d':' -f1)     # ChM-42
+          VERSION=$(echo "$FOOTER_LINE" | cut -d':' -f2)     # v1
+          C_HASH=$(echo "$FOOTER_LINE" | cut -d':' -f3)      # hash
+
+          CHM_FILE="messages/$CHM_ID.txt"
+          CHM_HASH=$(sha256sum "$CM_FILE" | awk '{print $1}')
+          UTC=$(date -u +"%Y-%m-%d %H:%M UTC")
+
+          CHP_FILE="CHP/CHP-$VERSION.chp"
+          if [ ! -f "$CHP_FILE" ]; then
+            V_CHECK="❌ CHP-$VERSION.chp not found"
+          else
+            CHP_HASH=$(sha256sum "$CHP_FILE" | awk '{print $1}')
+            if [ "$CHP_HASH" = "$C_HASH" ]; then
+              V_CHECK="✅ CHP-$VERSION matches C-HASH"
+            else
+              V_CHECK="❌ MISMATCH — CHP-$VERSION does not match C-HASH"
+            fi
+          fi
+
+          # Build the final ChM file with canonical header
+          {
+            echo "ID: $CHM_ID"
+            echo "UTC: $UTC"
+            echo "ChM-HASH: $CHM_HASH"
+            echo "C-HASH: $C_HASH"
+            echo "V-CHECK: $V_CHECK"
+            echo ""
+            echo "Message:"
+            cat "$CM_FILE"
+          } > "$CHM_FILE"
+
+          echo "✅ Created $CHM_FILE"
+        done
+
+    - name: Generate messages/index.json
+      run: |
+        echo "📦 Building messages/index.json"
+        CHM_LIST=$(ls messages/ChM-*.txt 2>/dev/null | sed 's|messages/||' | jq -R . | jq -s .)
+        echo "$CHM_LIST" > messages/index.json
+
+    - name: Commit and push ChM files + index
+      run: |
+        git config --global user.name "chm-bot"
+        git config --global user.email "chm@universe.dao"
+        git add messages/ChM-*.txt messages/index.json
+        git commit -m "Generate ChM and index.json from CM [auto]" || echo "No changes to commit"
+        git push
