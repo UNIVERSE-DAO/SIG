@@ -42,8 +42,8 @@
       border-radius: 4px;
       color: #cceccc;
       border: 1px solid #444;
-      white-space: pre-wrap;
-      word-break: break-word;
+      white-space: pre;
+      word-break: normal;
     }
 
     #dropdown-wrapper {
@@ -65,6 +65,16 @@
     #status-icon {
       margin-left: 0.5em;
       font-size: 1.2em;
+    }
+
+    /* Optional: visible scrollbar styling */
+    pre::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    pre::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 4px;
     }
   </style>
 </head>
