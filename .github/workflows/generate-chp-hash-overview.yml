@@ -1,0 +1,83 @@
+name: Generate CHP Hash Overview
+
+on:
+  workflow_dispatch: # Manual trigger only
+
+permissions:
+  contents: write  # Needed to push updates in a private repo
+
+jobs:
+  hash-overview:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Generate CHP-HASH-OVERVIEW.md
+        run: |
+          mkdir -p CHP
+          OUTPUT="CHP/CHP-HASH-OVERVIEW.md"
+
+          echo "# 🔐 CHP-HASH-OVERVIEW" > "$OUTPUT"
+          echo "" >> "$OUTPUT"
+          echo "_Auto-generated SHA256 hashes for identity and message files._" >> "$OUTPUT"
+          echo "" >> "$OUTPUT"
+          echo "**Generated on:** $(date -u)" >> "$OUTPUT"
+          echo "" >> "$OUTPUT"
+
+          echo "## 📂 Identity Files (.chp)" >> "$OUTPUT"
+          echo "" >> "$OUTPUT"
+
+          for file in CHP/CHP-*.chp; do
+            if [[ -f "$file" ]]; then
+              HASH=$(sha256sum "$file" | awk '{print $1}')
+              echo "### 🔹 $(basename "$file")" >> "$OUTPUT"
+              echo '```sha256' >> "$OUTPUT"
+              echo "$HASH" >> "$OUTPUT"
+              echo '```' >> "$OUTPUT"
+              echo "" >> "$OUTPUT"
+            fi
+          done
+
+          echo "## 📨 Canonical Messages (CM-*.txt)" >> "$OUTPUT"
+          echo "" >> "$OUTPUT"
+
+          for file in messages/CM-*.txt; do
+            if [[ -f "$file" ]]; then
+              HASH=$(sha256sum "$file" | awk '{print $1}')
+              echo "### 📄 $(basename "$file")" >> "$OUTPUT"
+              echo '```sha256' >> "$OUTPUT"
+              echo "$HASH" >> "$OUTPUT"
+              echo '```' >> "$OUTPUT"
+              echo "" >> "$OUTPUT"
+            fi
+          done
+
+          echo "## ✅ Canonical Hashed Messages (ChM-*.txt)" >> "$OUTPUT"
+          echo "" >> "$OUTPUT"
+
+          for file in messages/ChM-*.txt; do
+            if [[ -f "$file" ]]; then
+              HASH=$(sha256sum "$file" | awk '{print $1}')
+              echo "### 🧾 $(basename "$file")" >> "$OUTPUT"
+              echo '```sha256' >> "$OUTPUT"
+              echo "$HASH" >> "$OUTPUT"
+              echo '```' >> "$OUTPUT"
+              echo "" >> "$OUTPUT"
+            fi
+          done
+
+      - name: Commit and push CHP-HASH-OVERVIEW.md
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add CHP/CHP-HASH-OVERVIEW.md
+          git commit -m "📦 Auto-update CHP-HASH-OVERVIEW.md" || echo "No changes to commit"
+
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}
+          git pull --rebase origin main || echo "Rebase skipped"
+          git push origin main
