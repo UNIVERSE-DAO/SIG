@@ -7,12 +7,20 @@
 
   <style>
     body {
-      background: #1e1e1e;
+      background: #111;
       color: #f8f8f8;
       font-family: system-ui, sans-serif;
+      margin: 0;
       padding: 2em;
-      max-width: 66%;
-      margin: auto;
+    }
+
+    #main-container {
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 2em;
+      background: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
     }
 
     h1 {
@@ -23,6 +31,8 @@
 
     h2 {
       margin-top: 2em;
+      font-size: 1.3em;
+      font-weight: 600;
     }
 
     pre {
@@ -32,6 +42,8 @@
       border-radius: 4px;
       color: #cceccc;
       border: 1px solid #444;
+      white-space: pre-wrap;
+      word-break: break-word;
     }
 
     #dropdown-wrapper {
@@ -42,7 +54,7 @@
 
     select#message-select {
       font-size: 0.9em;
-      padding: 0.2em 0.4em;
+      padding: 0.3em 0.5em;
       background-color: #222;
       color: #f8f8f8;
       border: 1px solid #666;
@@ -58,23 +70,25 @@
 </head>
 <body>
 
-  <h1 id="main-title">
-    SIG-UNIVERSE.DAO <span id="version-label">v1</span>
-    <span id="status-icon">⌛</span>
-  </h1>
+  <div id="main-container">
+    <h1 id="main-title">
+      SIG-UNIVERSE.DAO <span id="version-label">v1</span>
+      <span id="status-icon">⌛</span>
+    </h1>
 
-  <div id="dropdown-wrapper">
-    <label for="message-select">Select message ChM ID:</label>
-    <select id="message-select">
-      <option selected disabled>— Select message ChM ID: —</option>
-    </select>
+    <div id="dropdown-wrapper">
+      <label for="message-select">Select message ChM ID:</label>
+      <select id="message-select">
+        <option selected disabled>— Select message ChM ID: —</option>
+      </select>
+    </div>
+
+    <h2 id="quorum-title">Quorum Verification</h2>
+    <div id="quorum-info"><i>Waiting for quorum check...</i></div>
+
+    <h2 id="message-title">Sovern Message Signature</h2>
+    <div id="message-info"><i>Waiting for message...</i></div>
   </div>
-
-  <h2 id="quorum-title">Quorum Verification</h2>
-  <div id="quorum-info"><i>Waiting for quorum check...</i></div>
-
-  <h2 id="message-title">Sovern Message Signature</h2>
-  <div id="message-info"><i>Waiting for message...</i></div>
 
   <script src="script.js"></script>
 </body>
