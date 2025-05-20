@@ -14,7 +14,7 @@ jobs:
     - name: Checkout source repo (SIG)
       uses: actions/checkout@v3
       with:
-        repository: 4RK-OFF/SIG
+        repository: UNIVERSE-DAO/SIG
         path: source
 
     - name: Checkout mirror repo (SIG3)
