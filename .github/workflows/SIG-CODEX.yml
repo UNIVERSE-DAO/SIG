@@ -1,0 +1,47 @@
+name: Generate SIG-CODEX
+
+on:
+  workflow_dispatch: # Manual trigger
+
+jobs:
+  generate-sig-codex:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout current repo
+        uses: actions/checkout@v4
+
+      - name: Generate SIG-CODEX.md
+        run: |
+          echo "# 🔐 SIG-CODEX" > SIG-CODEX.md
+          echo "" >> SIG-CODEX.md
+          echo "_Auto-generated canonical snapshot of this repository's code and content._" >> SIG-CODEX.md
+          echo "" >> SIG-CODEX.md
+
+          find . \
+            -type f \
+            \( -name "*.md" -o -name "*.py" -o -name "*.js" -o -name "*.ts" -o -name "*.json" -o -name "*.txt" \
+               -o -name "*.html" -o -name "*.css" -o -name "*.chp" -o -name "*.sig" -o -name "*.sh" \
+               -o -name "*.yml" -o -name "*.yaml" -o -name "*.conf" -o -name "*.env" -o -name ".gitignore" \) \
+            ! -path "./.git/*" ! -name "SIG-CODEX.md" | sort | while read file; do
+
+            relative_path=${file#./}
+            echo "## 🔹 $relative_path" >> SIG-CODEX.md
+            echo '```' >> SIG-CODEX.md
+            cat "$file" >> SIG-CODEX.md
+            echo '```' >> SIG-CODEX.md
+            echo -e "\n---\n" >> SIG-CODEX.md
+          done
+
+      - name: Commit and Push SIG-CODEX.md
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          git add SIG-CODEX.md
+          git commit -m "Auto-generate SIG-CODEX.md" || echo "No changes to commit"
+          
+          git pull --rebase origin main || echo "Rebase skipped"
+          git push origin main
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
