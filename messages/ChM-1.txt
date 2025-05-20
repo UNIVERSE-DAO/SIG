@@ -1,0 +1,16 @@
+ID: ChM-1
+UTC: 2025-05-20 06:43 UTC
+ChM-HASH: d63b9533dc8bbcdf9daeb3be1ea8445b14e9dde2bb154d9d7e7934b5670a590d
+C-HASH: e825bb5b9259a3798d678969bdb8e86009bed09dc1f75bbee8a8abf87a8f4cbd
+V-CHECK: ✅ CHP-v0 matches C-HASH
+
+Message:
+This message declares the canonical launch of the SIG-UNIVERSE.DAO signature protocol.
+
+CHP-v0 will serve as the genesis identity block.
+All messages moving forward will link to a defined C-HASH and identity quorum.
+
+—
+
+SIG-UNIVERSE.DAO  
+ChM-1:v0:e825bb5b9259a3798d678969bdb8e86009bed09dc1f75bbee8a8abf87a8f4cbd
