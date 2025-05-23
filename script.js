@@ -1,6 +1,5 @@
 const messagesPath = 'messages/';
-const signer = 'SIG3';
-const sigPath = `signers/${signer}/`;
+const sigPath = 'signers/';
 
 // Extract line by key (e.g., ID: ChM-1)
 function extractField(lines, key) {
@@ -8,11 +7,11 @@ function extractField(lines, key) {
   return line ? line.split(':').slice(1).join(':').trim() : null;
 }
 
-// Load message, compute hash, fetch SIG3 signature
+// Load message, compute hash, fetch SIG1 + SIG3
 async function loadMessage(filename) {
   const messageText = await fetch(`${messagesPath}${filename}?t=${Date.now()}`).then(res => res.text());
-
   const lines = messageText.split('\n');
+
   const info = {
     id: extractField(lines, 'ID'),
     utc: extractField(lines, 'UTC'),
@@ -28,13 +27,24 @@ async function loadMessage(filename) {
   const computedHash = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
   info.computedHash = computedHash;
 
-  // Load SIG3 signature
+  // Load SIG1 (ChM-HASH signature)
   try {
-    const res = await fetch(`${sigPath}${signer}-${filename}.sig?t=${Date.now()}`);
-    if (!res.ok) throw new Error('Signature not found');
+    const sig1Res = await fetch(`${sigPath}SIG1/SIG1-${filename}.sig?t=${Date.now()}`);
+    if (!sig1Res.ok) throw new Error('SIG1 not found');
+    const sig1 = await sig1Res.text();
+    info.sig1 = sig1.trim();
+    info.sig1Valid = !!info.sig1;
+  } catch {
+    info.sig1 = null;
+    info.sig1Valid = false;
+  }
 
-    const sig = await res.text();
-    info.sig3 = sig.trim();
+  // Load SIG3 (file hash match)
+  try {
+    const sig3Res = await fetch(`${sigPath}SIG3/SIG3-${filename}.sig?t=${Date.now()}`);
+    if (!sig3Res.ok) throw new Error('SIG3 not found');
+    const sig3 = await sig3Res.text();
+    info.sig3 = sig3.trim();
     info.sig3Valid = info.sig3 === computedHash;
   } catch {
     info.sig3 = null;
@@ -56,32 +66,29 @@ async function updateUI(filename) {
   const version = footerLine?.split(':')[1] || 'v?';
 
   const isMessageValid = info.vCheck.includes('✅');
-  const isSig3Valid = info.sig3Valid;
-  const allValid = isMessageValid && isSig3Valid;
+  const allValid = isMessageValid && info.sig1Valid && info.sig3Valid;
 
-  // Update page title status
+  // Update header status
   document.getElementById('version-label').textContent = version;
   document.getElementById('status-icon').textContent = allValid ? '✅' : '❌';
 
-  // Quorum title (signature file verification)
+  // Update quorum info
   const quorumTitle = document.getElementById('quorum-title');
-  quorumTitle.textContent = `Quorum ${version} verification: 1/1 ${info.sig3Valid ? '🆗' : '❌'}`;
+  quorumTitle.textContent = `Quorum ${version} verification`;
 
-  // Message title (V-CHECK field)
-  const messageTitle = document.getElementById('message-title');
-  messageTitle.textContent = `Sovern Message Signature ${isMessageValid ? '🆗' : '❌'}`;
-
-  // Signatures
   const quorumBox = document.getElementById('quorum-info');
   quorumBox.innerHTML = `
     <pre>
-SIG1 signature: –
+SIG1 signature: ${info.sig1 ? `${info.sig1} ${info.sig1Valid ? '🆗' : '❌'}` : '❌'}
 SIG2 signature: –
-SIG3 signature: ${info.sig3 ? `${info.sig3} ${isSig3Valid ? '🆗' : '❌'}` : '❌'}
+SIG3 signature: ${info.sig3 ? `${info.sig3} ${info.sig3Valid ? '🆗' : '❌'}` : '❌'}
     </pre>
   `;
 
-  // Message Info
+  // Update message info
+  const messageTitle = document.getElementById('message-title');
+  messageTitle.textContent = `Sovern Message Signature ${isMessageValid ? '🆗' : '❌'}`;
+
   const infoBox = document.getElementById('message-info');
   infoBox.innerHTML = `
     <pre>
@@ -98,7 +105,7 @@ ${messageBody}
   `;
 }
 
-// Load list of messages into dropdown
+// Populate dropdown
 async function listMessages() {
   const select = document.getElementById('message-select');
 
@@ -125,5 +132,4 @@ async function listMessages() {
   }
 }
 
-// Initialize on load
 listMessages();
