@@ -1,115 +1,107 @@
-const messagesPath = 'messages/';
-const sigPath = 'signers/';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SIG-UNIVERSE.DAO Verifier</title>
 
-function extractField(lines, key) {
-  const line = lines.find(l => l.startsWith(`${key}:`));
-  return line ? line.split(':').slice(1).join(':').trim() : null;
-}
-
-async function loadMessage(filename) {
-  const messageText = await fetch(`${messagesPath}${filename}?t=${Date.now()}`).then(res => res.text());
-  const lines = messageText.split('\\n');
-
-  const info = {
-    id: extractField(lines, 'ID'),
-    utc: extractField(lines, 'UTC'),
-    chmHash: extractField(lines, 'ChM-HASH'),
-    cHash: extractField(lines, 'C-HASH'),
-    vCheck: extractField(lines, 'V-CHECK'),
-    fullText: messageText
-  };
-
-  const encoder = new TextEncoder();
-  const hashBuffer = await crypto.subtle.digest('SHA-256', encoder.encode(messageText));
-  const computedHash = [...new Uint8Array(hashBuffer)].map(b => b.toString(16).padStart(2, '0')).join('');
-  info.computedHash = computedHash;
-
-  const sigs = ['SIG1', 'SIG2', 'SIG3'];
-
-  for (const sig of sigs) {
-    try {
-      const res = await fetch(`${sigPath}${sig}/${sig}-${filename}.sig?t=${Date.now()}`);
-      if (!res.ok) throw new Error(`${sig} not found`);
-      const sigText = await res.text();
-      info[sig.toLowerCase()] = sigText.trim();
-      info[`${sig.toLowerCase()}Valid`] = sig === 'SIG3' ? (sigText.trim() === computedHash) : true;
-    } catch {
-      info[sig.toLowerCase()] = null;
-      info[`${sig.toLowerCase()}Valid`] = false;
+  <style>
+    body {
+      background: #111;
+      color: #f8f8f8;
+      font-family: system-ui, sans-serif;
+      margin: 0;
+      padding: 2em;
+      font-size: 14px;
     }
-  }
 
-  return info;
-}
+    #main-container {
+      max-width: 750px;
+      margin: 0 auto;
+      padding: 2em;
+      background: #1e1e1e;
+      border-radius: 8px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.4);
+    }
 
-async function updateUI(filename) {
-  const info = await loadMessage(filename);
+    h1 {
+      font-weight: 800;
+      font-size: 1.6em;
+      margin-bottom: 0.5em;
+    }
 
-  const lines = info.fullText.split('\\n');
-  const msgIndex = lines.findIndex(line => line.trim() === 'Message:');
-  const messageBody = msgIndex !== -1 ? lines.slice(msgIndex + 1).join('\\n') : '(Message not found)';
+    h2 {
+      margin-top: 2em;
+      font-size: 1.2em;
+      font-weight: 600;
+    }
 
-  const footerLine = lines.find(line => line.includes(`ChM-${info.id.split('-')[1]}:`));
-  const version = footerLine?.split(':')[1] || 'v?';
+    pre {
+      background: #2b2b2b;
+      padding: 1em;
+      overflow-x: auto;
+      border-radius: 4px;
+      color: #cceccc;
+      border: 1px solid #444;
+      white-space: pre;
+      word-break: normal;
+      font-size: 13px;
+      line-height: 1.4;
+    }
 
-  const isMessageValid = info.vCheck.includes('✅');
-  const quorumValidCount = [info.sig1Valid, info.sig2Valid, info.sig3Valid].filter(v => v).length;
-  const quorumMet = quorumValidCount >= 2;
+    #dropdown-wrapper {
+      font-size: 0.95em;
+      margin-top: 0.5em;
+      margin-bottom: 1em;
+    }
 
-  document.getElementById('version-label').textContent = version;
-  document.getElementById('status-icon').textContent = quorumMet && isMessageValid ? '✅' : '❌';
+    select#message-select {
+      font-size: 0.9em;
+      padding: 0.3em 0.5em;
+      background-color: #222;
+      color: #f8f8f8;
+      border: 1px solid #666;
+      border-radius: 4px;
+      font-family: inherit;
+    }
 
-  document.getElementById('quorum-title').textContent = `Quorum (${quorumValidCount}/3 signatures valid)`;
+    #status-icon {
+      margin-left: 0.5em;
+      font-size: 1.2em;
+    }
 
-  document.getElementById('quorum-info').innerHTML = `
-    <pre>
-SIG1: ${info.sig1Valid ? '🆗' : '❌'}
-SIG2: ${info.sig2Valid ? '🆗' : '❌'}
-SIG3: ${info.sig3Valid ? '🆗' : '❌'}
-    </pre>
-  `;
+    pre::-webkit-scrollbar {
+      height: 8px;
+    }
 
-  document.getElementById('message-title').textContent = \`Sovern Message Signature \${isMessageValid ? '🆗' : '❌'}\`;
+    pre::-webkit-scrollbar-thumb {
+      background: #555;
+      border-radius: 4px;
+    }
+  </style>
+</head>
+<body>
 
-  document.getElementById('message-info').innerHTML = `
-    <pre>
-ID: ${info.id}
-UTC: ${info.utc}
-ChM-HASH: ${info.chmHash}
-C-HASH: ${info.cHash}
-V-CHECK: ${info.vCheck}
-FILE-HASH: ${info.computedHash}
+  <div id="main-container">
+    <h1 id="main-title">
+      SIG-UNIVERSE.DAO <span id="version-label">v1</span>
+      <span id="status-icon">⌛</span>
+    </h1>
 
-——— Canonical Message ———
-${messageBody}
-    </pre>
-  `;
-}
+    <div id="dropdown-wrapper">
+      <label for="message-select">Select message ChM ID:</label>
+      <select id="message-select">
+        <option selected disabled>— Select message ChM ID: —</option>
+      </select>
+    </div>
 
-async function listMessages() {
-  const select = document.getElementById('message-select');
+    <h2 id="quorum-title">Quorum Verification</h2>
+    <div id="quorum-info"><i>Waiting for quorum check...</i></div>
 
-  try {
-    const res = await fetch(\`messages/index.json?t=\${Date.now()}\`);
-    const files = await res.json();
+    <h2 id="message-title">Sovern Message Signature</h2>
+    <div id="message-info"><i>Waiting for message...</i></div>
+  </div>
 
-    files.forEach(file => {
-      const option = document.createElement('option');
-      option.value = file;
-      option.textContent = file;
-      select.appendChild(option);
-    });
-
-    select.addEventListener('change', () => {
-      if (select.value) updateUI(select.value);
-    });
-  } catch (err) {
-    console.error('Error loading messages index:', err);
-    const option = document.createElement('option');
-    option.disabled = true;
-    option.textContent = '⚠️ Failed to load index.json';
-    select.appendChild(option);
-  }
-}
-
-listMessages();
+  <script src="script.js"></script>
+</body>
+</html>
