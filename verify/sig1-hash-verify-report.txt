@@ -1,0 +1,15 @@
+🧾 SIG1 HASH Verification Report
+Generated: Fri May 23 22:00:50 UTC 2025
+
+▶ ChM-1.txt
+❌ No BTC address in CHP/CHP-v0.chp
+
+▶ ChM-2.txt
+SIG1 (-): ❌ Missing signature file (signers/SIG1/SIG1-ChM-2.txt.sig)
+
+▶ ChM-3.txt
+SIG1 (-): ❌ Missing signature file (signers/SIG1/SIG1-ChM-3.txt.sig)
+
+▶ ChM-4.txt
+SIG1 (17FVbQoEm2Kj6MHRhvK7wtTCn9yV6NgGVB): ✅ Valid signature of ChM-HASH
+
