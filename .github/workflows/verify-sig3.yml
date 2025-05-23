@@ -27,8 +27,8 @@ jobs:
       run: |
         cd source
         mkdir -p verify signers/SIG3
-        REPORT="verify/sig3-hash-verify-report.txt"
-        echo "C-HASH-P Mirror Report" > $REPORT
+        REPORT="verify/verify-report.txt"
+        echo "🔍 C-HASH-P Mirror Report" > $REPORT
         echo "Generated: $(date -u)" >> $REPORT
         echo "" >> $REPORT
 
