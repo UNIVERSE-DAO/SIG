@@ -2,7 +2,7 @@
 
 _Auto-generated SHA256 hashes for identity and message files._
 
-**Generated on:** Fri May 23 18:53:16 UTC 2025
+**Generated on:** Fri May 23 19:09:01 UTC 2025
 
 ## 📂 Identity Files (.chp)
 
@@ -39,4 +39,19 @@ e04e6439dbe128da86d4e89e25105f20db69b8e7eac1a3aeb0c18e921dc10441
 ```
 
 ## ✅ Canonical Hashed Messages (ChM-*.txt)
+
+### 🧾 ChM-1.txt
+```sha256
+dae7dac18292e3657548c18b05acd055cb4fa5db6a1a618db9d598bb055d5156
+```
+
+### 🧾 ChM-2.txt
+```sha256
+f22c102661e6e5c3b2e8c39cfd7637c0d27f1112fbeb0c257a31b2652b204ceb
+```
+
+### 🧾 ChM-3.txt
+```sha256
+dfb2b25088861f4c5d0f75a0652cd9dd0c2fd4d364e39f2acb2788cc41fd7a03
+```
 
