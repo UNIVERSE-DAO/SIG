@@ -1,4 +1,4 @@
-name: Verify ChM Mirror
+name: Verify SIG3 (HUB)
 
 on:
   workflow_dispatch:
