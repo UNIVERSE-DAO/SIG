@@ -1,0 +1,15 @@
+🧾 SIG2 ETH Signature Verification Report (Manual - UTF8 Fix)
+Generated: Fri May 23 22:09:20 UTC 2025
+
+▶ ChM-1.txt
+❌ No ETH address in CHP/CHP-v0.chp
+
+▶ ChM-2.txt
+SIG2 (-): ❌ Missing signature file (signers/SIG2/SIG2-ChM-2.txt.sig)
+
+▶ ChM-3.txt
+SIG2 (-): ❌ Missing signature file (signers/SIG2/SIG2-ChM-3.txt.sig)
+
+▶ ChM-4.txt
+SIG2 (0x6BE4390d6d22F5CA29168f900f433988eD5D25e9): ✅ Valid ETH signature of ChM-HASH
+
