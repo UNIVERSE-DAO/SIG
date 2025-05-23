@@ -1,11 +1,12 @@
 🔍 C-HASH-P Mirror Report
-Generated: Tue May 20 07:36:18 UTC 2025
+Generated: Fri May 23 14:55:05 UTC 2025
 
 ▶ Checking ChM-1.txt
-✅ ChM-1.txt matches
-ChM-HASH: f4f826e662a7e0de5ea4ea53c83c09481e4ed8a82edb07b7a8dbc6716de61b56
+❌ ChM-1.txt mismatch
 
 ▶ Checking ChM-2.txt
-✅ ChM-2.txt matches
-ChM-HASH: f9b83ee0e242e8ca2616b2b43e5c73d9679c55cad70bce449edc24d90211689d
+❌ ChM-2.txt mismatch
+
+▶ Checking ChM-3.txt
+❌ ChM-3.txt missing in mirror!
 
